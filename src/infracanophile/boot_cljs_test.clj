@@ -30,21 +30,33 @@
 
   Should be called before `boot-cljs` task."
   [n namespaces NS #{sym} "Namespaces whose tests will be run."]
-  (let [templates ["infracanophile/boot_cljs_test/phantom_runner.cljs"
-                   "phantom_wrapper.js"
-                   "cljs_test_phantom_runner.cljs.edn"]
-        test-dir (core/temp-dir!)]
+  (let [templates {:sources
+                   ["infracanophile/boot_cljs_test/phantom_runner.cljs"
+                    "cljs_test_phantom_runner.cljs.edn"]
+                   :assets
+                   ["phantom_wrapper.js"]}
+        test-dir (core/tmp-dir!)
+        asset-dir (core/tmp-dir!)]
     (core/with-pre-wrap fileset
       (file/empty-dir! test-dir)
-      (doseq [template templates
+      (doseq [template (:sources templates)
               :let [data {:required-ns (required-ns namespaces)
                           :tested-ns (tested-ns namespaces)}
                     output (io/file test-dir template)
                     content (render-resource template data)]]
         (mk-parents output)
         (spit output content))
+      (file/empty-dir! asset-dir)
+      (doseq [template (:assets templates)
+              :let [data {:required-ns (required-ns namespaces)
+                          :tested-ns (tested-ns namespaces)}
+                    output (io/file asset-dir template)
+                    content (render-resource template data)]]
+        (mk-parents output)
+        (spit output content))
       (-> fileset
           (core/add-source test-dir)
+          (core/add-asset asset-dir)
           (core/commit!)))))
 
 (deftask run-cljs-test
