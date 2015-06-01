@@ -1,4 +1,5 @@
 {:require  [infracanophile.boot-cljs-test.phantom-runner]
  :init-fns []
  :compiler-options {:main infracanophile.boot-cljs-test.phantom-runner
+                    :optimizations :none
                     :asset-path "target/out"}}

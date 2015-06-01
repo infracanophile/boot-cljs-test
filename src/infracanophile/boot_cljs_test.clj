@@ -52,5 +52,5 @@
   [c cmd str "command to run to execute output js file"]
   (fn middleware [next-handler]
     (fn handler [fileset]
-      (sh cmd "target/cljs_test_phantom_runner.js")
+      (sh cmd "localhost:8989/target/cljs_test_phantom_runner.js")
       (-> fileset next-handler))))
