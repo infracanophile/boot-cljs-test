@@ -11,11 +11,10 @@
 (bootlaces! +version+)
 
 (task-options!
- pom {:project     'boot-cljs-test/node-runner
+ pom {:project     'infracanophile/boot-cljs-test
       :version     +version+
-      :description "Boot task producing a script to test ClojureScript
-      namespaces in NodeJs."
-      :url         "https://github.com/boot-cljs-test/node-runner"
-      :scm         {:url "https://github.com/boot-cljs-test/node-runner"}
+      :description "Boot tasks to produce a script to test ClojureScript and to run this script"
+      :url         "https://github.com/infracanophile/boot-cljs-test"
+      :scm         {:url "https://github.com/infracanophile/boot-cljs-test"}
       :license     {"Eclipse Public License"
                     "http://www.eclipse.org/legal/epl-v10.html"}})

@@ -1,0 +1,4 @@
+{:require  [infracanophile.boot-cljs-test]
+ :init-fns []
+ :compiler-options {:main infracanophile.boot-cljs-test.browser-runner
+                    :asset-path "target/out"}}

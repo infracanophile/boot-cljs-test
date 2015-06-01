@@ -1,4 +1,4 @@
-(ns boot-cljs-test.node-runner
+(ns infracanophile.boot-cljs-test
   (:require [clojure.java.io :as io]
             [boot.core :as core :refer [deftask]]
             [boot.util :as util :refer [sh]]
@@ -30,8 +30,8 @@
 
   Should be called before `boot-cljs` task."
   [n namespaces NS #{sym} "Namespaces whose tests will be run."]
-  (let [templates ["boot_cljs_test/node_runner.cljs"
-                   "cljs_test_node_runner.cljs.edn"]
+  (let [templates ["infracanophile/boot_cljs_test/phantom_runner.cljs"
+                   "cljs_test_browser_runner.cljs.edn"]
         test-dir (core/temp-dir!)]
     (core/with-pre-wrap fileset
       (file/empty-dir! test-dir)
@@ -49,8 +49,8 @@
 (deftask run-cljs-test
   "Run the script produced by `cljs-test-node-runner` in
   Nodejs. Should be called after `boot-cljs` task."
-  [c node-cmd str "Custom Node command. Default: 'node'"]
+  [c cmd str "command to run to execute output js file"]
   (fn middleware [next-handler]
     (fn handler [fileset]
-      (sh (or node-cmd "node") "target/cljs_test_node_runner.js")
+      (sh cmd "target/cljs_test_phantom_runner.js")
       (-> fileset next-handler))))
