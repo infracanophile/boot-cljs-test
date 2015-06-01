@@ -1,20 +1,21 @@
 # boot-cljs-test/node-runner
 
 ```clj
-[boot-cljs-test/node-runner "0.1.0"]
+[incracanophile/boot-cljs-test "0.1.0"] ; NOT YET ON CLOJARS
 ```
 
-Boot task that automatically generate a ClojureScript test runner
-script that works on Nodejs.
+Boot tasks to run cljs.test in phantom/slimerjs. Node is there but broken (from project this was forked from boot-cljs-test/node-runner project.
+
+Very hacked together now, don't trust docs or naming yet.
 
 ## Usage
 
-Add `boot-cljs-test/node-runner` to your `build.boot` dependencies and
+Add `infracanophile.boot-cljs-test` to your `build.boot` dependencies and
 `require` the namespace:
 
 ```clj
-(set-env! :dependencies '[[boot-cljs-test/node-runner "X.Y.Z" :scope "test"]])
-(require '[boot-cljs-test/node-runner :refer :all])
+(set-env! :dependencies '[[infracanophile/boot-cljs-test "X.Y.Z" :scope "test"]])
+(require '[infracanophile.boot-cljs-test :refer [cljs-test-node-runner run-cljs-test])
 ```
 
 You can see the options available on the command line:
@@ -42,9 +43,14 @@ boot.user=> (doc cljs-test-node-runner)
 ))
 ```
 
-## License
+## TODO
 
-Copyright © 2015 Hoang Minh Thang
+A lot of refactoring to get rid of hardcoded junk. Finish renaming "node-runner"-based names.
+
+Nashorn runner
+Electron runner
+
+## License
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
