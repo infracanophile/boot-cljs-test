@@ -31,10 +31,12 @@
   Should be called before `boot-cljs` task."
   [n namespaces NS #{sym} "Namespaces whose tests will be run."]
   (let [templates ["infracanophile/boot_cljs_test/phantom_runner.cljs"
-                   "cljs_test_browser_runner.cljs.edn"]
+                   "cljs_test_phantom_runner.cljs.edn"]
         test-dir (core/temp-dir!)]
     (core/with-pre-wrap fileset
       (file/empty-dir! test-dir)
+      (println "phantom_runner resources: " (io/resource "infracanophile/boot_cljs_test/phantom_runner.cljs"))
+      (println "edn resources: " (io/resource "cljs_test_pantom_runner.cljs.edn"))
       (doseq [template templates
               :let [data {:required-ns (required-ns namespaces)
                           :tested-ns (tested-ns namespaces)}

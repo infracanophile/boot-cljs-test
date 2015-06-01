@@ -1,4 +1,4 @@
-(ns infracanophile.boot-cljs-test.node-runner
+(ns infracanophile.boot-cljs-test.phantom-runner
   (:require
    [clojure.string :as str]
    [cljs.test :as test :refer-macros [run-tests] :refer [report]]
@@ -16,3 +16,5 @@
    (test/empty-env ::test/default)
    {{tested-ns}})
   (.exit js/phantom 0))
+
+(main)
