@@ -35,8 +35,6 @@
         test-dir (core/temp-dir!)]
     (core/with-pre-wrap fileset
       (file/empty-dir! test-dir)
-      (println "phantom_runner resources: " (io/resource "infracanophile/boot_cljs_test/phantom_runner.cljs"))
-      (println "edn resources: " (io/resource "cljs_test_pantom_runner.cljs.edn"))
       (doseq [template templates
               :let [data {:required-ns (required-ns namespaces)
                           :tested-ns (tested-ns namespaces)}
