@@ -14,7 +14,4 @@
 (defn main []
   (test/run-tests
    (test/empty-env ::test/default)
-   {{tested-ns}})
-  (.exit js/phantom 0))
-
-(main)
+   {{tested-ns}}))
