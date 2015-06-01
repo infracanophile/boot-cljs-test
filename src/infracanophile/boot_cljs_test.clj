@@ -31,9 +31,8 @@
   Should be called before `boot-cljs` task."
   [n namespaces NS #{sym} "Namespaces whose tests will be run."]
   (let [templates ["infracanophile/boot_cljs_test/phantom_runner.cljs"
-                   "infracanophile/boot_cljs_test/phantom_wrapper.cljs"
-                   "cljs_test_phantom_runner.cljs.edn"
-                   "phantom_wrapper.cljs.edn"]
+                   "phantom_wrapper.js"
+                   "cljs_test_phantom_runner.cljs.edn"]
         test-dir (core/temp-dir!)]
     (core/with-pre-wrap fileset
       (file/empty-dir! test-dir)
@@ -54,5 +53,5 @@
   [c cmd str "command to run to execute output js file"]
   (fn middleware [next-handler]
     (fn handler [fileset]
-      (sh cmd "target/phantom-wrapper.js")
+      (sh cmd "target/phantom_wrapper.js")
       (-> fileset next-handler))))
