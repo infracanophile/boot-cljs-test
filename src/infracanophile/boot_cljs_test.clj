@@ -22,11 +22,11 @@
 (defn mk-parents [file]
   (-> file .getParent io/file .mkdirs))
 
-(deftask cljs-test-node-runner
+(deftask cljs-test-runner
   "Automatically produces:
 
   - a Clojurescript source that will run all tests in given `namespaces` list.
-  - an EDN file to instruct `boot-cljs` to build the file targeting Nodejs.
+  - an EDN file to instruct `boot-cljs` to build the file targeting the browser.
 
   Should be called before `boot-cljs` task."
   [n namespaces NS #{sym} "Namespaces whose tests will be run."]
@@ -60,8 +60,8 @@
           (core/commit!)))))
 
 (deftask run-cljs-test
-  "Run the script produced by `cljs-test-node-runner` in
-  Nodejs. Should be called after `boot-cljs` task."
+  "Run the script produced by `cljs-test-runner` with
+  cmd using the phantom_wrappe. Should be called after `boot-cljs` task."
   [c cmd str "command to run to execute output js file"]
   (fn middleware [next-handler]
     (fn handler [fileset]

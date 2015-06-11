@@ -1,12 +1,14 @@
 # boot-cljs-test/node-runner
 
 ```clj
-[incracanophile/boot-cljs-test "0.1.0"] ; NOT YET ON CLOJARS
+[incracanophile/boot-cljs-test "0.1.0-SNAPSHOT"]
 ```
 
-Boot tasks to run cljs.test in phantom/slimerjs. Node is there but broken (from project this was forked from boot-cljs-test/node-runner project.
+Forked from boot-cljs-test/node-runner project.
+Boot tasks to run cljs.test in phantom/slimerjs.
+Node support files are present but not currently used or usable.
 
-Very hacked together now, don't trust docs or naming yet.
+Very hacked together now.
 
 ## Usage
 
@@ -14,20 +16,22 @@ Add `infracanophile.boot-cljs-test` to your `build.boot` dependencies and
 `require` the namespace:
 
 ```clj
-(set-env! :dependencies '[[infracanophile/boot-cljs-test "X.Y.Z" :scope "test"]])
-(require '[infracanophile.boot-cljs-test :refer [cljs-test-node-runner run-cljs-test])
+(set-env! :dependencies '[[infracanophile/boot-cljs-test "X.Y.Z-SNAPSHOT" :scope "test"]])
+(require '[infracanophile.boot-cljs-test :refer [cljs-test-runner run-cljs-test])
 ```
 
 You can see the options available on the command line:
 
 ```bash
-$ boot cljs-test-node-runner -h
+$ boot cljs-test-runner -h
+$ boot run-cljs-test -h
 ```
 
 or in the REPL:
 
 ```bash
-boot.user=> (doc cljs-test-node-runner)
+boot.user=> (doc cljs-test-runner)
+boot.user=> (doc run-cljs-test)
 ```
 
 ## Setup
@@ -36,7 +40,7 @@ boot.user=> (doc cljs-test-node-runner)
 (deftask cljs-auto-test []
   (comp (watch)
         (speak)
-        (cljs-test-node-runner :namespaces '[foo.core-test bar.util-test]) ;; put it before `cljs` task
+        (cljs-test-runner :namespaces '[foo.core-test bar.util-test]) ;; put it before `cljs` task
         (cljs :source-map true
               :optimizations :none)
         (run-cljs-test) ;; put it after `cljs` task
@@ -45,10 +49,10 @@ boot.user=> (doc cljs-test-node-runner)
 
 ## TODO
 
-A lot of refactoring to get rid of hardcoded junk. Finish renaming "node-runner"-based names.
+Refactoring to get rid of hardcoded junk, other test runners, more configuration arguments for tasks.
 
-Nashorn runner
-Electron runner
+- Nashorn runner
+- Electron runner
 
 ## License
 
