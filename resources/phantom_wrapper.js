@@ -9,6 +9,8 @@ var html = "<html><head><script src=\"http://localhost:8989/target/cljs_test_pha
 fs.write(pagePath, html, 'w');
 
 p.onConsoleMessage = function(msg) {
+    var exit = msg.replace("phantom-exit-code:", "");
+    if (msg != exit) phantom.exit(parseInt(exit));
     console.log(msg);
 }
 

@@ -2,6 +2,7 @@
  :resource-paths #{"resources"}
  :source-paths   #{"src"}
  :dependencies   '[[de.ubercode.clostache/clostache "1.4.0"]
+                   [pandeiro/boot-http "0.6.3-SNAPSHOT"]
                    [adzerk/bootlaces "0.1.10" :scope "test"]])
 
 (require '[adzerk.bootlaces :refer :all])

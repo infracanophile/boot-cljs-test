@@ -3,6 +3,7 @@
             [boot.core :as core :refer [deftask]]
             [boot.util :as util :refer [sh]]
             [boot.file :as file]
+            [pandeiro.boot-http :refer [serve]]
             [clostache.parser :refer [render render-resource]]))
 
 (defn required-ns
@@ -34,7 +35,8 @@
                    ["infracanophile/boot_cljs_test/phantom_runner.cljs"
                     "cljs_test_phantom_runner.cljs.edn"]
                    :assets
-                   ["phantom_wrapper.js"]}
+                   ["phantom_wrapper.js"
+                    "phantom_wrapper.js.html"]}
         test-dir (core/tmp-dir!)
         asset-dir (core/tmp-dir!)]
     (core/with-pre-wrap fileset
@@ -61,9 +63,11 @@
 
 (deftask run-cljs-test
   "Run the script produced by `cljs-test-runner` with
-  cmd using the phantom_wrappe. Should be called after `boot-cljs` task."
+  cmd using the phantom_wrapper. Should be called after `boot-cljs` task."
   [c cmd str "command to run to execute output js file"]
-  (fn middleware [next-handler]
-    (fn handler [fileset]
-      (sh cmd "target/phantom_wrapper.js")
-      (-> fileset next-handler))))
+  (comp
+    (serve :dir "target" :port 8989 :reload true)
+    (fn middleware [next-handler]
+      (fn handler [fileset]
+        (-> fileset next-handler)
+        ((sh cmd "target/phantom_wrapper.js"))))))
