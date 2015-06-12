@@ -2,6 +2,7 @@
   (:import [boot App]
            [java.lang StackTraceElement])
   (:require [clojure.java.io :as io]
+            [clojure.string :as string]
             [boot.core :as core :refer [deftask]]
             [boot.util :as util :refer [sh]]
             [boot.file :as file]
@@ -78,7 +79,8 @@
     (fn middleware [next-handler]
       (fn handler [fileset]
         (-> fileset next-handler)
-        (let [exit-code ((sh cmd "target/phantom_wrapper.js"))]
+        (let [cmds (conj (string/split cmd #" ") "target/phantom_wrapper.js")
+              exit-code ((apply sh cmds))]
           (if (not= exit-code 0)
             (throw (doto
                      (boot.App$Exit. (str exit-code))
