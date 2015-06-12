@@ -1,4 +1,6 @@
 (ns infracanophile.boot-cljs-test
+  (:import [boot App]
+           [java.lang StackTraceElement])
   (:require [clojure.java.io :as io]
             [boot.core :as core :refer [deftask]]
             [boot.util :as util :refer [sh]]
@@ -61,6 +63,12 @@
           (core/add-asset asset-dir)
           (core/commit!)))))
 
+(defn dummy-stack-trace []
+  (into-array [(StackTraceElement. "BootExitCode"
+                                   "DummyStackTraceElement"
+                                   "DummyFile"
+                                   (int 1))]))
+
 (deftask run-cljs-test
   "Run the script produced by `cljs-test-runner` with
   cmd using the phantom_wrapper. Should be called after `boot-cljs` task."
@@ -70,4 +78,8 @@
     (fn middleware [next-handler]
       (fn handler [fileset]
         (-> fileset next-handler)
-        ((sh cmd "target/phantom_wrapper.js"))))))
+        (let [exit-code ((sh cmd "target/phantom_wrapper.js"))]
+          (if (not= exit-code 0)
+            (throw (doto
+                     (boot.App$Exit. (str exit-code))
+                     (.setStackTrace (dummy-stack-trace))))))))))
