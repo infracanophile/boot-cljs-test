@@ -15,6 +15,7 @@
   (println "phantom-exit-code:" (if (test/successful? m) 0 1)))
 
 (defn main []
-  (test/run-tests
-   (test/empty-env ::test/default)
-   {{tested-ns}}))
+  (test/{{test-command}}
+    {{test-regex}}
+    (test/empty-env ::test/default)
+    {{tested-ns}}))
