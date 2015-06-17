@@ -6,7 +6,145 @@
 
 (enable-console-print!)
 
+;; Create junit xml
+
+(def ^{:private true}
+  escape-xml-map
+  (zipmap "'<>\"&" (map #(str \& % \;) '[apos lt gt quot amp])))
+
+(defn- escape-xml [text]
+  (apply str (map #(escape-xml-map % %) text)))
+
+(def ^:dynamic *var-context*)
+(def ^:dynamic *depth*)
+
+(defn indent
+  []
+  (dotimes [n (* *depth* 4)] (print " ")))
+
+(defn start-element
+  [tag pretty & [attrs]]
+  (if pretty (indent))
+  (print (str "<" tag))
+  (if (seq attrs)
+    (doseq [[key value] attrs]
+      (print (str " " (name key) "=\"" (escape-xml value) "\""))))
+  (print ">")
+  (if pretty (println))
+  (set! *depth* (inc *depth*)))
+
+(defn element-content
+  [content]
+  (print (escape-xml content)))
+
+(defn finish-element
+  [tag pretty]
+  (set! *depth* (dec *depth*))
+  (if pretty (indent))
+  (print (str "</" tag ">"))
+  (if pretty (println)))
+
+(defn test-name
+  [vars]
+  (apply str (interpose "."
+                        (reverse (map #(:name (meta %)) vars)))))
+
+(defn package-class
+  [name]
+  (let [i (.lastIndexOf name ".")]
+    (if (< i 0)
+      [nil name]
+      [(.substring name 0 i) (.substring name (+ i 1))])))
+
+(defn start-case
+  [name classname]
+  (start-element 'testcase true {:name name :classname classname}))
+
+(defn finish-case
+  []
+  (finish-element 'testcase true))
+
+(defn suite-attrs
+  [package classname]
+  (let [attrs {:name classname}]
+    (if package
+      (assoc attrs :package package)
+      attrs)))
+
+(defn start-suite
+  [name]
+  (let [[package classname] (package-class name)]
+    (start-element 'testsuite true (suite-attrs package classname))))
+
+(defn finish-suite
+  []
+  (finish-element 'testsuite true))
+
+(defn message-el
+  [tag message expected-str actual-str]
+  (indent)
+  (start-element tag false (if message {:message message} {}))
+  (element-content
+   (let [detail (apply str (interpose
+                            "\n"
+                            [(str "expected: " expected-str)
+                             (str "  actual: " actual-str)]))]
+     (if message (str message "\n" detail) detail)))
+  (finish-element tag false)
+  (println))
+
+(defn failure-el
+  [message expected actual]
+  (message-el 'failure message (pr-str expected) (pr-str actual)))
+
+(defn error-el
+  [message expected actual]
+  (message-el 'error
+              message
+              (pr-str expected)
+              (prn actual)))
+
+
+;;; Output XML
+
+
+(defmethod report [::test/default :begin-test-ns] [m]
+  (start-suite (name (:ns m))))
+
+
+(defmethod report [::test/default :end-test-ns] [m]
+  (finish-suite))
+
+
+(defmethod report [::test/default :begin-test-var] [m]
+  (let [var (:var m)]
+    (start-case (test-name [var]) (name (:ns (meta var))))))
+
+
+(defmethod report [::test/default :end-test-var] [m]
+  (finish-case))
+
+
+(defmethod report [::test/default :pass] [m]
+  (test/inc-report-counter! :pass))
+
+
+(defmethod report [::test/default :fail] [m]
+  (test/inc-report-counter! :fail)
+  (failure-el (:message m)
+              (:expected m)
+              (:actual m)))
+
+(defmethod report [::test/default :error] [m]
+  (test/inc-report-counter! :error)
+  (error-el (:message m)
+            (:expected m)
+            (:actual m)))
+
+(defmethod report [::test/default :default] [m])
+
 (defmethod report [::test/default :summary] [m]
+  (println "</testsuites>")
   (println "\nRan " (:test m) " tests containing")
   (println (+ (:pass m) (:fail m) (:error m)) " assertions.")
   (println (:fail m) " failures, " (:error m) " errors."))
@@ -15,6 +153,8 @@
   (println "phantom-exit-code:" (if (test/successful? m) 0 1)))
 
 (defn main []
+  (println "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+  (println "<testsuites>")
   (test/run-tests
    (test/empty-env ::test/default)
    {{tested-ns}}))
