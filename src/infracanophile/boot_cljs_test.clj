@@ -1,7 +1,10 @@
 (ns infracanophile.boot-cljs-test
   (:import [boot App]
+           [java.io File]
            [java.lang StackTraceElement])
   (:require [clojure.java.io :as io]
+            [clojure.tools.namespace.parse :as namespace-parse]
+            [clojure.tools.namespace.file :as namespace-file]
             [clojure.string :as string]
             [boot.core :as core :refer [deftask]]
             [boot.util :as util :refer [sh]]
@@ -26,6 +29,46 @@
 (defn mk-parents [file]
   (-> file .getParent io/file .mkdirs))
 
+;; Fix for finding cljc namespaces.
+(defn read-ns-decl [rdr]
+  (try
+    (loop []
+      (let [form (doto (read {:read-cond :allow} rdr) str)]
+        (if (namespace-parse/ns-decl? form)
+          form
+          (recur))))
+    (catch Exception e nil)))
+
+(defn read-file-ns-decl [file]
+  (with-open [rdr (java.io.PushbackReader. (io/reader file))]
+    (read-ns-decl rdr)))
+
+(defn clojurescript-file?
+  [^File file]
+  (and (.isFile file)
+       (or
+         (.endsWith (.getName file) ".cljs")
+         (.endsWith (.getName file) ".cljc"))))
+
+(defn find-clojurescript-sources-in-dir
+  [^File dir]
+  (sort-by #(.getAbsolutePath ^File %)
+           (filter clojurescript-file? (file-seq dir))))
+
+(defn find-ns-decls-in-dir [^java.io.File dir]
+  (keep read-file-ns-decl (find-clojurescript-sources-in-dir dir)))
+
+(defn find-namespaces-in-dir [^java.io.File dir]
+  (map second (find-ns-decls-in-dir dir)))
+
+;; Get all namespaces.
+(defn get-all-ns [& dirs]
+  (-> (mapcat #(find-namespaces-in-dir (io/file %)) dirs)))
+
+(defn filter-namespaces
+  [regex namespaces]
+  (filter #(re-find regex (str %)) namespaces))
+
 (deftask cljs-test-runner
   "Automatically produces:
 
@@ -34,20 +77,11 @@
 
   Should be called before `boot-cljs` task."
   [n namespaces NS #{sym} "The set of namespace symbols to run test in."
-   r regex REGEX str "The set of expressions to use to filter namespaces."]
-  (when (and namespaces regex)
-    (throw (Exception. "cljs-test-runner: Either list namespaces or provide regex, not both")))
-  (let [test-command (if namespaces
-                       "run-tests"
-                       "run-all-tests")
-        required-namespaces (if namespaces
-                              (required-ns namespaces))
-        tested-namespaces (if namespaces
-                            (tested-ns namespaces))
-        data {:required-ns required-namespaces
-              :tested-ns tested-namespaces
-              :test-regex regex}
-        templates {:sources
+   l limit-regex REGEX regex "A regex for limiting namespaces to be tested"
+   t test-filters EXPR #{edn} "The set of expressions to use to filter tests"]
+  (when (not (or namespaces limit-regex))
+    (throw (Exception. "cljs-test-runner: You must list namespaces or provide limit-regex (or both)")))
+  (let [templates {:sources
                    ["infracanophile/boot_cljs_test/phantom_runner.cljs"
                     "cljs_test_phantom_runner.cljs.edn"]
                    :assets
@@ -56,22 +90,36 @@
         test-dir (core/tmp-dir!)
         asset-dir (core/tmp-dir!)]
     (core/with-pre-wrap fileset
+      (println "Starting test...")
       (file/empty-dir! test-dir)
-      (doseq [template (:sources templates)
-              :let [output (io/file test-dir template)
-                    content (render-resource template data)]]
-        (mk-parents output)
-        (spit output content))
-      (file/empty-dir! asset-dir)
-      (doseq [template (:assets templates)
-              :let [output (io/file asset-dir template)
-                    content (render-resource template data)]]
-        (mk-parents output)
-        (spit output content))
-      (-> fileset
-          (core/add-source test-dir)
-          (core/add-asset asset-dir)
-          (core/commit!)))))
+      (let [namespaces (or (seq namespaces)
+                           (->> fileset
+                                core/input-dirs
+                                (map (memfn getPath))
+                                (apply get-all-ns)
+                                (filter-namespaces limit-regex)))
+            test-predicate (if test-filters
+                            `(~'fn [~'%] (~'and ~@test-filters))
+                            `(~'fn [~'%] true)) 
+            data {:required-ns (required-ns namespaces)
+                  :tested-ns (tested-ns namespaces)
+                  :test-predicate test-predicate}]
+        (println "predicate: " test-predicate)
+        (doseq [template (:sources templates)
+                :let [output (io/file test-dir template)
+                      content (render-resource template data)]]
+          (mk-parents output)
+          (spit output content))
+        (file/empty-dir! asset-dir)
+        (doseq [template (:assets templates)
+                :let [output (io/file asset-dir template)
+                      content (render-resource template data)]]
+          (mk-parents output)
+          (spit output content))
+        (-> fileset
+            (core/add-source test-dir)
+            (core/add-asset asset-dir)
+            (core/commit!))))))
 
 (defn dummy-stack-trace []
   (into-array [(StackTraceElement. "BootExitCode"
@@ -82,15 +130,19 @@
 (deftask run-cljs-test
   "Run the script produced by `cljs-test-runner` with
   cmd using the phantom_wrapper. Should be called after `boot-cljs` task."
-  [c cmd str "command to run to execute output js file"]
+  [c cmd str "command to run to execute output js file"
+   o output-path PATH str "A string representing the filepath to output test results"
+   f formatter FORMATTER kw "Tag defining formatter to use. Accepts `junit`. Defaults to standard clojure.test output"]
   (comp
     (serve :dir "target" :port 8989 :reload true)
     (fn middleware [next-handler]
       (fn handler [fileset]
         (-> fileset next-handler)
-        (let [cmds (conj (string/split cmd #" ") "target/phantom_wrapper.js")
+        (let [result (-> fileset next-handler)
+              cmds (conj (string/split cmd #" ") "target/phantom_wrapper.js")
               exit-code ((apply sh cmds))]
           (if (not= exit-code 0)
             (throw (doto
                      (boot.App$Exit. (str exit-code))
-                     (.setStackTrace (dummy-stack-trace))))))))))
+                     (.setStackTrace (dummy-stack-trace)))))
+          result)))))

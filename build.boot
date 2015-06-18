@@ -1,13 +1,14 @@
 (set-env!
- :resource-paths #{"resources"}
- :source-paths   #{"src"}
- :dependencies   '[[de.ubercode.clostache/clostache "1.4.0"]
-                   [pandeiro/boot-http "0.6.3-SNAPSHOT"]
-                   [adzerk/bootlaces "0.1.10" :scope "test"]])
+  :resource-paths #{"resources"}
+  :source-paths   #{"src"}
+  :dependencies   '[[org.clojure/tools.namespace "0.2.10"]
+                    [de.ubercode.clostache/clostache "1.4.0"]
+                    [pandeiro/boot-http "0.6.3-SNAPSHOT"]
+                    [adzerk/bootlaces "0.1.10" :scope "test"]])
 
 (require '[adzerk.bootlaces :refer :all])
 
-(def +version+ "0.1.0-SNAPSHOT")
+(def +version+ "0.2.0-SNAPSHOT")
 
 (bootlaces! +version+)
 

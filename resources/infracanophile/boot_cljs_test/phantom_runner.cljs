@@ -1,21 +1,22 @@
 (ns infracanophile.boot-cljs-test.phantom-runner
+  (:require-macros [cljs.test :as t]
+                   [infracanophile.boot-cljs-test.phantom-runner :refer [run-tests]])
   (:require
-   [clojure.string :as str]
-   [cljs.test :as test :refer-macros [run-tests] :refer [report]]
+   [cljs.test :as t :refer [report]]
    {{required-ns}}))
 
 (enable-console-print!)
 
-(defmethod report [::test/default :summary] [m]
+(defmethod report [:cljs.test/default :summary] [m]
   (println "\nRan " (:test m) " tests containing")
   (println (+ (:pass m) (:fail m) (:error m)) " assertions.")
   (println (:fail m) " failures, " (:error m) " errors."))
 
 (defmethod report [:cljs.test/default :end-run-tests] [m]
-  (println "phantom-exit-code:" (if (test/successful? m) 0 1)))
+  (println "phantom-exit-code:" (if (t/successful? m) 0 1)))
 
 (defn main []
-  (test/{{test-command}}
-    {{test-regex}}
-    (test/empty-env ::test/default)
-    {{tested-ns}}))
+  (run-tests
+      (t/empty-env :cljs.test/default)
+      {{test-predicate}}
+      {{tested-ns}}))
