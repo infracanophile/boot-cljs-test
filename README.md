@@ -1,7 +1,7 @@
 # boot-cljs-test/node-runner
 
 ```clj
-[incracanophile/boot-cljs-test "0.1.0-SNAPSHOT"]
+[incracanophile/boot-cljs-test "0.2.0-SNAPSHOT"]
 ```
 
 Forked from boot-cljs-test/node-runner project.
@@ -40,10 +40,13 @@ boot.user=> (doc run-cljs-test)
 (deftask cljs-auto-test []
   (comp (watch)
         (speak)
-        (cljs-test-runner :namespaces '[foo.core-test bar.util-test]) ;; put it before `cljs` task
+        (cljs-test-runner
+          :namespaces '[foo.core-test bar.util-test]
+          :limit-regex ".*-test"
+          :test-filters #{'(:integration-test %) '(:slow-test %)}) ;; put it before `cljs` task
         (cljs :source-map true
               :optimizations :none)
-        (run-cljs-test) ;; put it after `cljs` task
+        (run-cljs-test :cmd "phantomjs") ;; put it after `cljs` task
 ))
 ```
 
