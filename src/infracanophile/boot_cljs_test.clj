@@ -146,7 +146,8 @@
               args (conj (string/split cmd #" ") "target/phantom_wrapper.js")
               [cmd & args] args]
           (conch/let-programs [cmd cmd]
-            (let [results (apply cmd (concat args [{:verbose true}]))
+            (let [results (apply cmd (concat args [{:verbose true
+                                                    :throw false}]))
                   writer (if output-path
                            (io/writer output-path)
                            *out*)]
