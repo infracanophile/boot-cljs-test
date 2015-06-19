@@ -143,12 +143,12 @@
   (println "phantom-exit-code:" (if (t/successful? m) 0 1)))
 
 ; Default cli reports
-(defmethod report [::default :summary] [m]
+(defmethod report [:cljs.test/default :summary] [m]
   (println "\nRan " (:test m) " tests containing")
   (println (+ (:pass m) (:fail m) (:error m)) " assertions.")
   (println (:fail m) " failures, " (:error m) " errors."))
 
-(defmethod report [::default :end-run-tests] [m]
+(defmethod report [:cljs.test/default :end-run-tests] [m]
   (println "phantom-exit-code:" (if (t/successful? m) 0 1)))
 
 (defn main []

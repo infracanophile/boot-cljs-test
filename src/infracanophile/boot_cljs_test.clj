@@ -6,6 +6,7 @@
             [clojure.tools.namespace.parse :as namespace-parse]
             [clojure.tools.namespace.file :as namespace-file]
             [clojure.string :as string]
+            [me.raynes.conch :as conch]
             [boot.core :as core :refer [deftask]]
             [boot.util :as util :refer [sh]]
             [boot.file :as file]
@@ -108,7 +109,7 @@
                   :is-junit (= :junit formatter)
                   :formatter (if (= :junit formatter)
                                :infracanophile.boot-cljs-test.phantom-runner/junit
-                               :infracanophile.boot-cljs-test.phantom-runner/default)}]
+                               :cljs.test/default)}]
         (doseq [template (:sources templates)
                 :let [output (io/file test-dir template)
                       content (render-resource template data)]]
@@ -142,10 +143,20 @@
       (fn handler [fileset]
         (-> fileset next-handler)
         (let [result (-> fileset next-handler)
-              cmds (conj (string/split cmd #" ") "target/phantom_wrapper.js")
-              exit-code ((apply sh cmds))]
-          (if (not= exit-code 0)
-            (throw (doto
-                     (boot.App$Exit. (str exit-code))
-                     (.setStackTrace (dummy-stack-trace)))))
+              args (conj (string/split cmd #" ") "target/phantom_wrapper.js")
+              [cmd & args] args]
+          (conch/let-programs [cmd cmd]
+            (let [results (apply cmd (concat args [{:verbose true}]))
+                  writer (if output-path
+                           (io/writer output-path)
+                           *out*)]
+              (doseq [o (-> results :proc :out)]
+                (.write writer (str o "\n")))
+              (when output-path
+                (.close writer))
+              (let [exit-code @(:exit-code results)]
+                (if (not= exit-code 0)
+                  (throw (doto
+                           (boot.App$Exit. (str exit-code))
+                           (.setStackTrace (dummy-stack-trace))))))))
           result)))))
