@@ -9,7 +9,7 @@
 
 (require '[adzerk.bootlaces :refer :all])
 
-(def +version+ "0.2.0-SNAPSHOT")
+(def +version+ "0.3.0-SNAPSHOT")
 
 (bootlaces! +version+)
 
