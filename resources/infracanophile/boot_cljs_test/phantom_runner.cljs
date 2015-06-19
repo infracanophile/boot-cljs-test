@@ -90,8 +90,7 @@
                             [(str "expected: " expected-str)
                              (str "  actual: " actual-str)]))]
      (if message (str message "\n" detail) detail)))
-  (finish-element tag false)
-  (println))
+  (finish-element tag false))
 
 (defn failure-el
   [message expected actual]

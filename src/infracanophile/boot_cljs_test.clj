@@ -151,7 +151,7 @@
                            (io/writer output-path)
                            *out*)]
               (doseq [o (-> results :proc :out)]
-                (.write writer (str o "\n")))
+                (.write writer o))
               (when output-path
                 (.close writer))
               (let [exit-code @(:exit-code results)]
