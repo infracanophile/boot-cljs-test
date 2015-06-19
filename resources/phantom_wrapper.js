@@ -10,12 +10,7 @@ fs.write(pagePath, html, 'w');
 
 p.onConsoleMessage = function(msg) {
     var exit = msg.replace("phantom-exit-code:", "");
-    if (msg != exit) {
-        if (p) p.close();
-        setTimeout(function(){phantom.exit(parseInt(exit)); }, 0);
-        phantom.onError = function(){};
-        throw new Error('');
-    }
+    if (msg != exit) phantom.exit(parseInt(exit));
     console.log(msg);
 }
 
