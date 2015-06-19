@@ -152,7 +152,7 @@
 
 (defn main []
   (when {{is-junit}}
-    (println "<?xml version\"1.0\" encoding=\"UTF-8\"?><testsuites>"))
+    (println "<?xml version=\"1.0\" encoding=\"UTF-8\"?><testsuites>"))
   (run-tests
       (t/empty-env {{formatter}})
       {{test-predicate}}
