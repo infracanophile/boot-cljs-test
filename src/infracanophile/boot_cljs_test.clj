@@ -78,7 +78,8 @@
   Should be called before `boot-cljs` task."
   [n namespaces NS #{sym} "The set of namespace symbols to run test in."
    l limit-regex REGEX regex "A regex for limiting namespaces to be tested"
-   t test-filters EXPR #{edn} "The set of expressions to use to filter tests"]
+   t test-filters EXPR #{edn} "The set of expressions to use to filter tests"
+   f formatter FORMATTER kw "Tag defining formatter to use. Accepts `junit`. Defaults to standard clojure.test output"]
   (when (not (or namespaces limit-regex))
     (throw (Exception. "cljs-test-runner: You must list namespaces or provide limit-regex (or both)")))
   (let [templates {:sources
@@ -103,8 +104,11 @@
                             `(~'fn [~'%] true)) 
             data {:required-ns (required-ns namespaces)
                   :tested-ns (tested-ns namespaces)
-                  :test-predicate test-predicate}]
-        (println "predicate: " test-predicate)
+                  :test-predicate test-predicate
+                  :is-junit (= :junit formatter)
+                  :formatter (if (= :junit formatter)
+                               :infracanophile.boot-cljs-test.phantom-runner/junit
+                               :infracanophile.boot-cljs-test.phantom-runner/default)}]
         (doseq [template (:sources templates)
                 :let [output (io/file test-dir template)
                       content (render-resource template data)]]
@@ -131,8 +135,7 @@
   "Run the script produced by `cljs-test-runner` with
   cmd using the phantom_wrapper. Should be called after `boot-cljs` task."
   [c cmd str "command to run to execute output js file"
-   o output-path PATH str "A string representing the filepath to output test results"
-   f formatter FORMATTER kw "Tag defining formatter to use. Accepts `junit`. Defaults to standard clojure.test output"]
+   o output-path PATH str "A string representing the filepath to output test results"]
   (comp
     (serve :dir "target" :port 8989 :reload true)
     (fn middleware [next-handler]
