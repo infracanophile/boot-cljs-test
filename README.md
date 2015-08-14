@@ -8,7 +8,6 @@ Forked from boot-cljs-test/node-runner project.
 Boot tasks to run cljs.test in phantomjs.
 Node support files are present but not currently used or usable.
 
-Very hacked together now.
 
 ## Usage
 
