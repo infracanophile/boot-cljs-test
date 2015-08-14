@@ -1,11 +1,11 @@
 # boot-cljs-test/node-runner
 
 ```clj
-[incracanophile/boot-cljs-test "0.2.0-SNAPSHOT"]
+[incracanophile/boot-cljs-test "0.3.2"]
 ```
 
 Forked from boot-cljs-test/node-runner project.
-Boot tasks to run cljs.test in phantom/slimerjs.
+Boot tasks to run cljs.test in phantomjs.
 Node support files are present but not currently used or usable.
 
 Very hacked together now.
@@ -34,19 +34,24 @@ boot.user=> (doc cljs-test-runner)
 boot.user=> (doc run-cljs-test)
 ```
 
-## Setup
+## Composing into a test runner task
 
 ```clj
-(deftask cljs-auto-test []
-  (comp (watch)
-        (speak)
-        (cljs-test-runner
-          :namespaces '[foo.core-test bar.util-test]
-          :limit-regex ".*-test"
-          :test-filters #{'(:integration-test %) '(:slow-test %)}) ;; put it before `cljs` task
+(deftask cljs-test
+  "Runs cljs tests once"
+  [n namespaces NAMESPACES #{sym} "Symbols of namespaces to test"
+   l limit-regex REGEX regex "A regex for limiting namespaces to be tested"
+   t test-filters EXPR #{edn} "The set of expressions to use to filter tests"
+   o output-path PATH str "A string representing the filepath to output test results"
+   f formatter FORMATTER kw "Tag defining formatter to use. Accepts `junit`. Defaults to standard clojure.test output"]
+  (comp (cljs-test-runner :namespaces namespaces
+                          :limit-regex limit-regex
+                          :test-filters test-filters
+                          :formatter formatter)
         (cljs :source-map true
               :optimizations :none)
-        (run-cljs-test :cmd "phantomjs") ;; put it after `cljs` task
+        (run-cljs-test :cmd "phantomjs --web-security false"
+                       :output-path output-path)))
 ))
 ```
 
