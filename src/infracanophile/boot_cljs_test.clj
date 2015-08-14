@@ -81,8 +81,9 @@
    l limit-regex REGEX regex "A regex for limiting namespaces to be tested"
    t test-filters EXPR #{edn} "The set of expressions to use to filter tests"
    f formatter FORMATTER kw "Tag defining formatter to use. Accepts `junit`. Defaults to standard clojure.test output"]
-  (when (not (or namespaces limit-regex))
-    (throw (Exception. "cljs-test-runner: You must list namespaces or provide limit-regex (or both)")))
+  (when (and namespaces limit-regex)
+    (throw (Exception. (str "cljs-test-runner: Providing explicit namespaces"
+                            " and a limit-regex is not supported"))))
   (let [templates {:sources
                    ["infracanophile/boot_cljs_test/phantom_runner.cljs"
                     "cljs_test_phantom_runner.cljs.edn"]
@@ -94,12 +95,16 @@
     (core/with-pre-wrap fileset
       (println "Starting test...")
       (file/empty-dir! test-dir)
-      (let [namespaces (or (seq namespaces)
+      (let [namespaces (if namespaces
+                         (seq namespaces)
+                         (let [filter-ns-fn (if limit-regex
+                                              #(filter-namespaces % limit-regex)
+                                              identity)]
                            (->> fileset
                                 core/input-dirs
                                 (map (memfn getPath))
                                 (apply get-all-ns)
-                                (filter-namespaces limit-regex)))
+                                filter-ns-fn)))
             test-predicate (if test-filters
                             `(~'fn [~'%] (~'and ~@test-filters))
                             `(~'fn [~'%] true)) 
