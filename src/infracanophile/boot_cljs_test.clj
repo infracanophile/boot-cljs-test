@@ -98,7 +98,7 @@
       (let [namespaces (if namespaces
                          (seq namespaces)
                          (let [filter-ns-fn (if limit-regex
-                                              #(filter-namespaces % limit-regex)
+                                              #(filter-namespaces limit-regex %)
                                               identity)]
                            (->> fileset
                                 core/input-dirs
