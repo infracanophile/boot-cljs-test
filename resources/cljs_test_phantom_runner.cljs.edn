@@ -2,4 +2,4 @@
  :init-fns []
  :compiler-options {:main infracanophile.boot-cljs-test.phantom-runner
                     :optimizations :none
-                    :asset-path "out"}}
+                    :asset-path "cljs_test_phantom_runner.out"}}

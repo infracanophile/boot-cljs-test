@@ -1,7 +1,9 @@
 (set-env!
   :resource-paths #{"resources"}
   :source-paths   #{"src"}
-  :dependencies   '[[org.clojure/tools.namespace "0.2.10"]
+  :dependencies   '[[org.clojure/tools.reader "1.0.0-alpha1"]
+                    [org.clojure/tools.namespace "0.3.0-alpha2"
+                     :exclusions [org.clojure/tools.reader]]
                     [de.ubercode.clostache/clostache "1.4.0"]
                     [me.raynes/conch "0.8.0"]
                     [pandeiro/boot-http "0.6.3"]
@@ -9,7 +11,7 @@
 
 (require '[adzerk.bootlaces :refer :all])
 
-(def +version+ "0.3.3")
+(def +version+ "0.3.5")
 
 (bootlaces! +version+)
 
