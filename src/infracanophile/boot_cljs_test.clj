@@ -99,7 +99,7 @@
                          (seq namespaces)
                          (let [filter-ns-fn (if limit-regex
                                               #(filter-namespaces limit-regex %)
-                                              identity)]
+                                              #(filter-namespaces #"-test$" %))]
                            (->> fileset
                                 core/input-dirs
                                 (map (memfn getPath))
@@ -107,7 +107,7 @@
                                 filter-ns-fn)))
             test-predicate (if test-filters
                             `(~'fn [~'%] (~'and ~@test-filters))
-                            `(~'fn [~'%] true)) 
+                            `(~'fn [~'%] true))
             data {:required-ns (required-ns namespaces)
                   :tested-ns (tested-ns namespaces)
                   :test-predicate test-predicate
@@ -127,6 +127,8 @@
           (mk-parents output)
           (spit output content))
         (-> fileset
+            ((fn remove-cljs-build-files [fs]
+               (core/rm fs (core/by-ext [".cljs.edn"] (core/user-files fs)))))
             (core/add-source test-dir)
             (core/add-asset asset-dir)
             (core/commit!))))))
