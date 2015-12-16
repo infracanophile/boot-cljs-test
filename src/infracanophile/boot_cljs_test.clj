@@ -142,7 +142,7 @@
 (deftask run-cljs-test
   "Run the script produced by `cljs-test-runner` with
   cmd using the phantom_wrapper. Should be called after `boot-cljs` task."
-  [c cmd str "command to run to execute output js file"
+  [c cmd CMD str "command to run to execute output js file"
    o output-path PATH str "A string representing the filepath to output test results"]
   (comp
     (serve :dir "target" :port 8989 :reload true)
